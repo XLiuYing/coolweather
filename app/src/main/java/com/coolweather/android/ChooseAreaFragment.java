@@ -78,11 +78,11 @@ public class ChooseAreaFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
        View view = inflater.inflate(R.layout.choose_area ,container, false);
-       titleText = (TextView) view.findViewById(R.id.title_text);
-       backButton = (Button) view.findViewById(R.id.back_button);
-       listView =(ListView) view.findViewById(R.id.list_view);
+       titleText = view.findViewById(R.id.title_text);
+       backButton = view.findViewById(R.id.back_button);
+       listView = view.findViewById(R.id.list_view);
        adapter = new ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_1,dataList);//初始化适配器
-       listView.setAdapter(adapter);//设置为listview 的适配器
+       listView.setAdapter(adapter);
        return view;
     }
 
@@ -100,10 +100,17 @@ public class ChooseAreaFragment extends Fragment {
                     queryCounties();
                 }else if(currentLevel ==LEVEL_COUNTY){
                     String weatherId = countyList.get(position).getWeatherId();
+                    if(getActivity() instanceof MainActivity){
                     Intent intent = new Intent(getActivity(), WeatherActivity.class);
                     intent.putExtra("weather_id",weatherId);
                     startActivity(intent);
                     getActivity().finish();
+                    }else if (getActivity() instanceof WeatherActivity){
+                        WeatherActivity activity = (WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefresh.setRefreshing(true);
+                        activity.requestWeather(weatherId);
+                    }
                 }
             }
         });
@@ -147,7 +154,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities(){
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).find(City.class);//
+        cityList = DataSupport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).find(City.class);
         if (cityList.size()>0){
             dataList.clear();
             for(City city : cityList){
